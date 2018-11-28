@@ -1,0 +1,38 @@
+{
+    "network-config": {
+                "org1": {
+                        "name": "peerCore",
+                        "mspid": "CoreMSP",
+                        "peer1": {
+                                "requests": "grpcs://peer0.core.at2chain.com:7051",
+                                "events": "grpcs://peer0.core.at2chain.com:7053",
+                                "server-hostname": "peer0.core.at2chain.com",
+                                "tls_cacerts": "/blockchain-explorer/at2chain/crypto-config/peerOrganizations/core.at2chain.com/peers/peer0.core.at2chain.com/tls/ca.crt"
+                        },
+                        "admin": {
+                                "key": "/blockchain-explorer/at2chain/crypto-config/peerOrganizations/core.at2chain.com/users/Admin@core.at2chain.com/msp/keystore",
+                                
+                                "cert": "/blockchain-explorer/at2chain/crypto-config/peerOrganizations/core.at2chain.com/users/Admin@core.at2chain.com/msp/signcerts"
+                        }
+                }
+        },
+   "host":"localhost",
+   "port":"8080",
+   "channel": "tracec",
+   "GOPATH":"../artifacts",
+   "keyValueStore":"/tmp/fabric-client-kvs",
+   "eventWaitTime":"30000",
+   "users":[
+        {
+           "username":"admin",
+           "secret":"adminpw"
+        }
+   ],
+   "pg":{
+      "host":"p.didibaba.us",
+      "port":"5432",
+      "database":"fabricexplorer",
+      "username":"hppoc",
+      "passwd":"password"
+   }
+}

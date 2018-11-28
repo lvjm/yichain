@@ -1,0 +1,347 @@
+version: '2'
+
+networks:
+  at2chainnet:
+services:
+  ca:
+    image: registry.cn-hangzhou.aliyuncs.com/at2chain/fabric-ca:amd64-1.3.0
+    environment:
+      - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
+      - FABRIC_CA_SERVER_CA_NAME=ca-core
+      - FABRIC_CA_SERVER_TLS_ENABLED=true
+      - FABRIC_CA_SERVER_TLS_CERTFILE=/etc/hyperledger/fabric-ca-server-config/ca.core.at2chain.com-cert.pem
+      - FABRIC_CA_SERVER_TLS_KEYFILE=/etc/hyperledger/fabric-ca-server-config/2b9c75cb0cbf7eddf0aeae3da75efe4a9d032c635dbcb8e081b3fef6773ab873_sk
+    ports:
+      - "7054:7054"
+    command: sh -c 'fabric-ca-server start --ca.certfile /etc/hyperledger/fabric-ca-server-config/ca.core.at2chain.com-cert.pem --ca.keyfile /etc/hyperledger/fabric-ca-server-config/2b9c75cb0cbf7eddf0aeae3da75efe4a9d032c635dbcb8e081b3fef6773ab873_sk -b admin:adminpw -d'
+    volumes:
+      - ./crypto-config/peerOrganizations/core.at2chain.com/ca/:/etc/hyperledger/fabric-ca-server-config
+    container_name: ca_peerCore
+    networks:
+      - at2chainnet
+
+  orderer.at2chain.com:
+    extends:
+      file:   base/docker-compose-base.yaml
+      service: orderer.at2chain.com
+    container_name: orderer.at2chain.com
+    depends_on:
+      - zookeeper0
+      - zookeeper1
+      - zookeeper2
+      - kafka0
+      - kafka1
+      - kafka2
+      - kafka3
+    networks:
+      - at2chainnet
+
+  couchdb0.core:
+    container_name: couchdb0.core
+    image: registry.cn-hangzhou.aliyuncs.com/at2chain/fabric-couchdb:amd64-0.4.13
+    # Comment/Uncomment the port mapping if you want to hide/expose the CouchDB service,
+    # for example map it to utilize Fauxton User Interface in dev environments.
+    environment:
+      - COUCHDB_USER=admin
+      - COUCHDB_PASSWORD=orderer-peer-ca
+    ports:
+      - "5984:5984"
+    networks:
+      - at2chainnet
+
+  peer0.core.at2chain.com:
+    container_name: peer0.core.at2chain.com
+    extends:
+      file:  base/docker-compose-base.yaml
+      service: peer0.core.at2chain.com
+    environment:
+      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb0.core:5984
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=admin 
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=orderer-peer-ca
+    depends_on:
+      - couchdb0.core
+    networks:
+      - at2chainnet
+
+  couchdb1.core:
+    container_name: couchdb1.core
+    image: registry.cn-hangzhou.aliyuncs.com/at2chain/fabric-couchdb:amd64-0.4.13
+    # Comment/Uncomment the port mapping if you want to hide/expose the CouchDB service,
+    # for example map it to utilize Fauxton User Interface in dev environments.
+    environment:
+      - COUCHDB_USER=admin
+      - COUCHDB_PASSWORD=orderer-peer-ca
+    ports:
+      - "5994:5984"
+    networks:
+      - at2chainnet
+
+  peer1.core.at2chain.com:
+    container_name: peer1.core.at2chain.com
+    extends:
+      file:  base/docker-compose-base.yaml
+      service: peer1.core.at2chain.com
+    environment:
+      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb1.core:5984
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=admin 
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=orderer-peer-ca
+    depends_on:
+      - couchdb1.core
+    networks:
+      - at2chainnet
+
+  #peer2.core.at2chain.com:
+   # container_name: peer2.core.at2chain.com
+   # extends:
+   #   file:  base/docker-compose-base.yaml
+   #   service: peer2.core.at2chain.com
+   # networks:
+    #  - at2chainnet
+  
+  couchdb0.support:
+    container_name: couchdb0.support
+    image: registry.cn-hangzhou.aliyuncs.com/at2chain/fabric-couchdb:amd64-0.4.13
+    # Comment/Uncomment the port mapping if you want to hide/expose the CouchDB service,
+    # for example map it to utilize Fauxton User Interface in dev environments.
+    environment:
+      - COUCHDB_USER=admin
+      - COUCHDB_PASSWORD=orderer-peer-ca
+    ports:
+      - "5904:5984"
+    networks:
+      - at2chainnet
+
+  peer0.support.at2chain.com:
+    container_name: peer0.support.at2chain.com
+    extends:
+      file:  base/docker-compose-base.yaml
+      service: peer0.support.at2chain.com
+    environment:
+      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb0.support:5984
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=admin 
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=orderer-peer-ca
+    depends_on:
+      - couchdb0.support
+    networks:
+      - at2chainnet
+
+  couchdb1.support:
+    container_name: couchdb1.support
+    image: registry.cn-hangzhou.aliyuncs.com/at2chain/fabric-couchdb:amd64-0.4.13
+    # Comment/Uncomment the port mapping if you want to hide/expose the CouchDB service,
+    # for example map it to utilize Fauxton User Interface in dev environments.
+    environment:
+      - COUCHDB_USER=admin
+      - COUCHDB_PASSWORD=orderer-peer-ca
+    ports:
+      - "5914:5984"
+    networks:
+      - at2chainnet
+
+  peer1.support.at2chain.com:
+    container_name: peer1.support.at2chain.com
+    extends:
+      file:  base/docker-compose-base.yaml
+      service: peer1.support.at2chain.com
+    environment:
+      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb1.support:5984
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=admin 
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=orderer-peer-ca
+    depends_on:
+      - couchdb1.support
+    networks:
+      - at2chainnet
+
+  cli:
+    container_name: cli
+    image: registry.cn-hangzhou.aliyuncs.com/at2chain/fabric-tools:amd64-1.3.0
+    tty: true
+    environment:
+      - GOPATH=/opt/gopath
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - CORE_LOGGING_LEVEL=DEBUG
+      - CORE_PEER_ID=cli
+      - CORE_PEER_ADDRESS=peer0.core.at2chain.com:7051
+      - CORE_PEER_LOCALMSPID=CoreMSP
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_TLS_CERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/core.at2chain.com/peers/peer0.core.at2chain.com/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/core.at2chain.com/peers/peer0.core.at2chain.com/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/core.at2chain.com/peers/peer0.core.at2chain.com/tls/ca.crt
+      - CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/core.at2chain.com/users/Admin@core.at2chain.com/msp
+      - ORDERER_CA=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/at2chain.com/orderers/orderer.at2chain.com/msp/tlscacerts/tlsca.at2chain.com-cert.pem
+      - CORE_PEER_ADDRESSAUTODETECT=false
+      - GODEBUG=netdns=go
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+    command: /bin/bash -c './scripts/wait-for-it.sh orderer.at2chain.com:7050 -t 0; ./scripts/wait-for-it.sh peer0.core.at2chain.com:7051 -t 0; ./scripts/wait-for-it.sh peer1.core.at2chain.com:7051 -t 0;./scripts/wait-for-it.sh peer0.support.at2chain.com:7051 -t 0;./scripts/wait-for-it.sh peer1.support.at2chain.com:7051 -t 0; ./scripts/run-chaincode.sh ${CHANNEL_NAME} ${DELAY}; sleep 10000'
+    volumes:
+        - /var/run/:/host/var/run/
+        - ./chaincode-traceability:/opt/gopath/src/bitbucket.org/at2chain/chaincode-traceability/
+        - ./chaincode-digital-asset:/opt/gopath/src/bitbucket.org/at2chain/chaincode-digital-asset/
+        - ./chaincode-chinastirling:/opt/gopath/src/bitbucket.org/at2chain/chaincode-chinastirling/
+        - ./chaincode-token:/opt/gopath/src/bitbucket.org/at2chain/chaincode-token/
+        - ./crypto-config:/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/
+        - ./scripts:/opt/gopath/src/github.com/hyperledger/fabric/peer/scripts/
+        - ./channel-artifacts:/opt/gopath/src/github.com/hyperledger/fabric/peer/channel-artifacts/
+    depends_on:
+      - orderer.at2chain.com
+      - peer0.core.at2chain.com
+      - peer1.core.at2chain.com
+      - peer0.support.at2chain.com
+      - peer1.support.at2chain.com
+    networks:
+      - at2chainnet
+
+  zookeeper0:
+    extends:
+      file: base/kafka-base.yaml
+      service: zookeeper
+    environment:
+      # ========================================================================
+      #     Reference: https://zookeeper.apache.org/doc/r3.4.9/zookeeperAdmin.html#sc_configuration
+      # ========================================================================
+      #
+      # myid
+      # The ID must be unique within the ensemble and should have a value
+      # between 1 and 255.
+      - ZOO_MY_ID=1
+      #
+      # server.x=[hostname]:nnnnn[:nnnnn]
+      # The list of servers that make up the ZK ensemble. The list that is used
+      # by the clients must match the list of ZooKeeper servers that each ZK
+      # server has. There are two port numbers `nnnnn`. The first is what
+      # followers use to connect to the leader, while the second is for leader
+      # election.
+      - ZOO_SERVERS=server.1=zookeeper0:2888:3888 server.2=zookeeper1:2888:3888 server.3=zookeeper2:2888:3888
+    networks:
+      - at2chainnet
+
+  zookeeper1:
+    extends:
+      file: base/kafka-base.yaml
+      service: zookeeper
+    environment:
+      - ZOO_MY_ID=2
+      - ZOO_SERVERS=server.1=zookeeper0:2888:3888 server.2=zookeeper1:2888:3888 server.3=zookeeper2:2888:3888
+    networks:
+      - at2chainnet
+
+  zookeeper2:
+    extends:
+      file: base/kafka-base.yaml
+      service: zookeeper
+    environment:
+      - ZOO_MY_ID=3
+      - ZOO_SERVERS=server.1=zookeeper0:2888:3888 server.2=zookeeper1:2888:3888 server.3=zookeeper2:2888:3888
+    networks:
+      - at2chainnet
+
+  kafka0:
+    extends:
+      file: base/kafka-base.yaml
+      service: kafka
+    environment:
+      # ========================================================================
+      #     Reference: https://kafka.apache.org/documentation/#configuration
+      # ========================================================================
+      #
+      # broker.id
+      - KAFKA_BROKER_ID=0
+      #
+      # min.insync.replicas
+      # Let the value of this setting be M. Data is considered committed when
+      # it is written to at least M replicas (which are then considered in-sync
+      # and belong to the in-sync replica set, or ISR). In any other case, the
+      # write operation returns an error. Then:
+      # 1. If up to M-N replicas -- out of the N (see default.replication.factor
+      # below) that the channel data is written to -- become unavailable,
+      # operations proceed normally.
+      # 2. If more replicas become unavailable, Kafka cannot maintain an ISR set
+      # of M, so it stops accepting writes. Reads work without issues. The
+      # channel becomes writeable again when M replicas get in-sync.
+      - KAFKA_MIN_INSYNC_REPLICAS=2
+      #
+      # default.replication.factor
+      # Let the value of this setting be N. A replication factor of N means that
+      # each channel will have its data replicated to N brokers. These are the
+      # candidates for the ISR set of a channel. As we noted in the
+      # min.insync.replicas section above, not all of these brokers have to be
+      # available all the time. In this sample configuration we choose a
+      # default.replication.factor of K-1 (where K is the total number of brokers in
+      # our Kafka cluster) so as to have the largest possible candidate set for
+      # a channel's ISR. We explicitly avoid setting N equal to K because
+      # channel creations cannot go forward if less than N brokers are up. If N
+      # were set equal to K, a single broker going down would mean that we would
+      # not be able to create new channels, i.e. the crash fault tolerance of
+      # the ordering service would be non-existent.
+      - KAFKA_DEFAULT_REPLICATION_FACTOR=3
+      #
+      # zookeper.connect
+      # Point to the set of Zookeeper nodes comprising a ZK ensemble.
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper0:2181,zookeeper1:2181,zookeeper2:2181
+      #
+      # zookeeper.connection.timeout.ms
+      # The max time that the client waits to establish a connection to
+      # Zookeeper. If not set, the value in zookeeper.session.timeout.ms (below)
+      # is used.
+      #- KAFKA_ZOOKEEPER_CONNECTION_TIMEOUT_MS = 6000
+      #
+      # zookeeper.session.timeout.ms
+      #- KAFKA_ZOOKEEPER_SESSION_TIMEOUT_MS = 6000
+    depends_on:
+      - zookeeper0
+      - zookeeper1
+      - zookeeper2
+    networks:
+      - at2chainnet
+
+  kafka1:
+    extends:
+      file: base/kafka-base.yaml
+      service: kafka
+    environment:
+      - KAFKA_BROKER_ID=1
+      - KAFKA_DEFAULT_REPLICATION_FACTOR=3
+      - KAFKA_MIN_INSYNC_REPLICAS=2
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper0:2181,zookeeper1:2181,zookeeper2:2181
+    depends_on:
+      - zookeeper0
+      - zookeeper1
+      - zookeeper2
+    networks:
+      - at2chainnet
+
+  kafka2:
+    extends:
+      file: base/kafka-base.yaml
+      service: kafka
+    environment:
+      - KAFKA_BROKER_ID=2
+      - KAFKA_DEFAULT_REPLICATION_FACTOR=3
+      - KAFKA_MIN_INSYNC_REPLICAS=2
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper0:2181,zookeeper1:2181,zookeeper2:2181
+    depends_on:
+      - zookeeper0
+      - zookeeper1
+      - zookeeper2
+    networks:
+      - at2chainnet
+
+  kafka3:
+    extends:
+      file: base/kafka-base.yaml
+      service: kafka
+    environment:
+      - KAFKA_BROKER_ID=3
+      - KAFKA_DEFAULT_REPLICATION_FACTOR=3
+      - KAFKA_MIN_INSYNC_REPLICAS=2
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper0:2181,zookeeper1:2181,zookeeper2:2181
+    depends_on:
+      - zookeeper0
+      - zookeeper1
+      - zookeeper2
+    networks:
+      - at2chainnet

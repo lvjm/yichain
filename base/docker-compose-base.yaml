@@ -1,0 +1,128 @@
+version: '2'
+
+services:
+
+  orderer.at2chain.com:
+    container_name: orderer.at2chain.com
+    image: registry.cn-hangzhou.aliyuncs.com/at2chain/fabric-orderer:amd64-1.3.0 
+    environment:
+      - ORDERER_GENERAL_LOGLEVEL=debug
+      - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
+      - ORDERER_GENERAL_GENESISMETHOD=file
+      - ORDERER_GENERAL_GENESISFILE=/var/hyperledger/orderer/orderer.genesis.block
+      - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
+      - ORDERER_GENERAL_LOCALMSPDIR=/var/hyperledger/orderer/msp
+      # enabled TLS
+      - ORDERER_GENERAL_TLS_ENABLED=true
+      - ORDERER_GENERAL_TLS_PRIVATEKEY=/var/hyperledger/orderer/tls/server.key
+      - ORDERER_GENERAL_TLS_CERTIFICATE=/var/hyperledger/orderer/tls/server.crt
+      - ORDERER_GENERAL_TLS_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
+      - GODEBUG=netdns=go
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric
+    command: orderer
+    volumes:
+    - ../channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
+    - ../crypto-config/ordererOrganizations/at2chain.com/orderers/orderer.at2chain.com/msp:/var/hyperledger/orderer/msp
+    - ../crypto-config/ordererOrganizations/at2chain.com/orderers/orderer.at2chain.com/tls/:/var/hyperledger/orderer/tls
+    ports:
+      - 7050:7050
+
+  peer0.core.at2chain.com:
+    container_name: peer0.core.at2chain.com
+    extends:
+      file: peer-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer0.core.at2chain.com
+      - CORE_PEER_ADDRESS=peer0.core.at2chain.com:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.core.at2chain.com:7051
+      - CORE_PEER_LOCALMSPID=CoreMSP
+      - GODEBUG=netdns=go
+    volumes:
+        - /var/run/:/host/var/run/
+        - ../crypto-config/peerOrganizations/core.at2chain.com/peers/peer0.core.at2chain.com/msp:/etc/hyperledger/fabric/msp
+        - ../crypto-config/peerOrganizations/core.at2chain.com/peers/peer0.core.at2chain.com/tls:/etc/hyperledger/fabric/tls
+    ports:
+      - 7051:7051
+      - 7053:7053
+
+  peer1.core.at2chain.com:
+    container_name: peer1.core.at2chain.com
+    extends:
+      file: peer-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer1.core.at2chain.com
+      - CORE_PEER_ADDRESS=peer1.core.at2chain.com:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.core.at2chain.com:7051
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.core.at2chain.com:7051
+      - CORE_PEER_LOCALMSPID=CoreMSP
+      - GODEBUG=netdns=go
+    volumes:
+        - /var/run/:/host/var/run/
+        - ../crypto-config/peerOrganizations/core.at2chain.com/peers/peer1.core.at2chain.com/msp:/etc/hyperledger/fabric/msp
+        - ../crypto-config/peerOrganizations/core.at2chain.com/peers/peer1.core.at2chain.com/tls:/etc/hyperledger/fabric/tls
+    ports:
+      - 8051:7051
+      - 8053:7053
+
+  peer2.core.at2chain.com:
+    container_name: peer2.core.at2chain.com
+    extends:
+      file: peer-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer2.core.at2chain.com
+      - CORE_PEER_ADDRESS=peer2.core.at2chain.com:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer2.core.at2chain.com:7051
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.core.at2chain.com:7051
+      - CORE_PEER_LOCALMSPID=CoreMSP
+      - GODEBUG=netdns=go
+      - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
+      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/msp
+    volumes:
+        - /var/run/:/host/var/run/
+        - ../crypto-config/peerOrganizations/core.at2chain.com/peers/peer2.core.at2chain.com/msp:/etc/hyperledger/fabric/msp
+        - ../crypto-config/peerOrganizations/core.at2chain.com/peers/peer2.core.at2chain.com/tls:/etc/hyperledger/fabric/tls
+    ports:
+      - 9051:7051
+      - 9053:7053
+
+  peer0.support.at2chain.com:
+    container_name: peer0.support.at2chain.com
+    extends:
+      file: peer-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer0.support.at2chain.com
+      - CORE_PEER_ADDRESS=peer0.support.at2chain.com:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.support.at2chain.com:7051
+      - CORE_PEER_LOCALMSPID=SupportMSP
+      - GODEBUG=netdns=go
+    volumes:
+        - /var/run/:/host/var/run/
+        - ../crypto-config/peerOrganizations/support.at2chain.com/peers/peer0.support.at2chain.com/msp:/etc/hyperledger/fabric/msp
+        - ../crypto-config/peerOrganizations/support.at2chain.com/peers/peer0.support.at2chain.com/tls:/etc/hyperledger/fabric/tls
+    ports:
+      - 17051:7051
+      - 17053:7053
+
+  peer1.support.at2chain.com:
+    container_name: peer1.support.at2chain.com
+    extends:
+      file: peer-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer1.support.at2chain.com
+      - CORE_PEER_ADDRESS=peer1.support.at2chain.com:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.support.at2chain.com:7051
+      - CORE_PEER_LOCALMSPID=SupportMSP
+      - GODEBUG=netdns=go
+    volumes:
+        - /var/run/:/host/var/run/
+        - ../crypto-config/peerOrganizations/support.at2chain.com/peers/peer1.support.at2chain.com/msp:/etc/hyperledger/fabric/msp
+        - ../crypto-config/peerOrganizations/support.at2chain.com/peers/peer1.support.at2chain.com/tls:/etc/hyperledger/fabric/tls
+    ports:
+      - 18051:7051
+      - 18053:7053
+

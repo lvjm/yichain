@@ -1,0 +1,33 @@
+OrdererOrgs:
+  # ---------------------------------------------------------------------------
+  # Orderer
+  # ---------------------------------------------------------------------------
+  - Name: Orderer
+    Domain: at2chain.com
+    # ---------------------------------------------------------------------------
+    # "Specs" - See PeerOrgs below for complete description
+    # ---------------------------------------------------------------------------
+    Specs:
+      - Hostname: orderer.at2chain.com
+        CommonName: orderer.at2chain.com
+
+PeerOrgs:
+
+  - Name: Core
+    Domain: core.at2chain.com
+
+    Specs:
+      - Hostname: peer0.core.at2chain.com
+        CommonName: peer0.core.at2chain.com
+      - Hostname: peer1.core.at2chain.com
+        CommonName: peer1.core.at2chain.com
+
+  - Name: Support
+    Domain: support.at2chain.com
+
+    Specs:
+      - Hostname: peer0.support.at2chain.com
+        CommonName: peer0.support.at2chain.com
+      - Hostname: peer1.support.at2chain.com
+        CommonName: peer1.support.at2chain.com
+      
